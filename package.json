@@ -1,0 +1,42 @@
+{
+  "name": "faster-h3-for-deckgl",
+  "version": "0.1.0",
+  "description": "Faster, exact H3 polygons layer for deck.gl",
+  "license": "BSD-2-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bovine3dom/faster-h3-for-deckgl.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "yarn build && node --test test/*.test.js",
+    "prepack": "yarn build"
+  },
+  "dependencies": {
+    "earcut": "^2.2.4",
+    "h3-js": "^4.4.0"
+  },
+  "peerDependencies": {
+    "@deck.gl/core": "~9.0.14",
+    "@deck.gl/layers": "~9.0.14"
+  }
+}
