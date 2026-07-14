@@ -28,15 +28,28 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "yarn build && node --test test/*.test.js",
-    "prepack": "yarn build"
+    "test": "npm run build && node --test test/*.test.js",
+    "test:browser": "npm run build && node --test test/browser/*.test.js",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "earcut": "^2.2.4",
     "h3-js": "^4.4.0"
   },
   "peerDependencies": {
-    "@deck.gl/core": "~9.0.14",
-    "@deck.gl/layers": "~9.0.14"
+    "@deck.gl/core": ">=9.0.14 <9.4.0",
+    "@deck.gl/layers": ">=9.0.14 <9.4.0"
+  },
+  "devDependencies": {
+    "@deck.gl/core": ">=9.0.14 <9.4.0",
+    "@deck.gl/layers": ">=9.0.14 <9.4.0",
+    "@luma.gl/constants": ">=9.0.14 <9.4.0",
+    "@luma.gl/core": ">=9.0.14 <9.4.0",
+    "@luma.gl/engine": ">=9.0.14 <9.4.0",
+    "@luma.gl/shadertools": ">=9.0.14 <9.4.0",
+    "@luma.gl/webgl": ">=9.0.14 <9.4.0",
+    "esbuild": "0.28.1",
+    "playwright": "1.61.1",
+    "typescript": "5.9.3"
   }
 }

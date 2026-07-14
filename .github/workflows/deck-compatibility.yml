@@ -1,0 +1,85 @@
+name: deck.gl compatibility
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 6 * * 3' # wednesday at 06h23
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    name: deck.gl ${{ matrix.deck }} / luma.gl ${{ matrix.luma }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - deck: '9.0.14'
+            luma: '9.0.14'
+            wgsl: '1.0.1'
+          # - deck: '9.0.41'
+          #   luma: '9.0.28'
+          #   wgsl: '1.0.1'
+          # - deck: '9.1.0'
+          #   luma: '9.1.0'
+          #   wgsl: '1.0.1'
+          # - deck: '9.1.15'
+          #   luma: '9.1.10'
+          #   wgsl: '1.2.0'
+          # - deck: '9.2.0'
+          #   luma: '9.2.2'
+          #   wgsl: '1.2.0'
+          # - deck: '9.2.11'
+          #   luma: '9.2.6'
+          #   wgsl: '1.2.0'
+          # - deck: '9.3.0'
+          #   luma: '9.3.2'
+          #   wgsl: '1.5.0'
+          - deck: '9.3.6'
+            luma: '9.3.6'
+            wgsl: '1.5.0'
+          - deck: latest
+            luma: latest
+            wgsl: latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install compatible vis.gl versions
+        env:
+          DECK_VERSION: ${{ matrix.deck }}
+          LUMA_VERSION: ${{ matrix.luma }}
+          WGSL_VERSION: ${{ matrix.wgsl }}
+        run: >-
+          npm install --no-package-lock --no-save
+          "@deck.gl/core@$DECK_VERSION"
+          "@deck.gl/layers@$DECK_VERSION"
+          "@luma.gl/constants@$LUMA_VERSION"
+          "@luma.gl/core@$LUMA_VERSION"
+          "@luma.gl/engine@$LUMA_VERSION"
+          "@luma.gl/shadertools@$LUMA_VERSION"
+          "@luma.gl/webgl@$LUMA_VERSION"
+          "wgsl_reflect@$WGSL_VERSION"
+
+      - name: Report installed deck.gl versions
+        run: |
+          node -p "'core ' + require('./node_modules/@deck.gl/core/package.json').version"
+          node -p "'layers ' + require('./node_modules/@deck.gl/layers/package.json').version"
+          node -p "'luma ' + require('./node_modules/@luma.gl/core/package.json').version"
+
+      - name: Run type and unit tests
+        run: npm test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps --only-shell chromium
+
+      - name: Run browser compatibility test
+        run: npm run test:browser

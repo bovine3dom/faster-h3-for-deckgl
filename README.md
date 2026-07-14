@@ -9,10 +9,10 @@ It naughtily depends on some deck internals so it might be fragile and break bet
 ## Install
 
 ```sh
-npm install @faster-h3-for-deckgl @deck.gl/core @deck.gl/layers
+npm install faster-h3-for-deckgl @deck.gl/core @deck.gl/layers
 ```
 
-The initial release was tested with deck.gl 9.0.x.
+The compatibility suite covers deck.gl 9.0 through 9.3.
 
 ## Use
 
