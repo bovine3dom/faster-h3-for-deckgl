@@ -43,9 +43,6 @@ jobs:
           - deck: '9.3.6'
             luma: '9.3.6'
             wgsl: '1.5.0'
-          - deck: latest
-            luma: latest
-            wgsl: latest
 
     steps:
       - uses: actions/checkout@v5
@@ -83,3 +80,115 @@ jobs:
 
       - name: Run browser compatibility test
         run: npm run test:browser
+
+  latest-canary:
+    name: Latest deck.gl canary
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.compatibility.outputs.version }}
+      range: ${{ steps.compatibility.outputs.range }}
+      outside: ${{ steps.compatibility.outputs.outside }}
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Install latest vis.gl versions
+        run: >-
+          npm install --no-package-lock --no-save --force
+          "@deck.gl/core@latest"
+          "@deck.gl/layers@latest"
+          "@luma.gl/constants@latest"
+          "@luma.gl/core@latest"
+          "@luma.gl/engine@latest"
+          "@luma.gl/shadertools@latest"
+          "@luma.gl/webgl@latest"
+          "wgsl_reflect@latest"
+
+      - name: Run type and unit tests
+        run: npm test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps --only-shell chromium
+
+      - name: Run browser compatibility test
+        run: npm run test:browser
+
+      - name: Compare latest version with peer range
+        id: compatibility
+        run: |
+          node --input-type=module <<'NODE'
+          import {appendFileSync, readFileSync} from 'node:fs'
+          import semver from 'semver'
+
+          const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'))
+          const installed = {
+            '@deck.gl/core': JSON.parse(
+              readFileSync('./node_modules/@deck.gl/core/package.json', 'utf8')
+            ).version,
+            '@deck.gl/layers': JSON.parse(
+              readFileSync('./node_modules/@deck.gl/layers/package.json', 'utf8')
+            ).version
+          }
+          if (installed['@deck.gl/core'] !== installed['@deck.gl/layers']) {
+            throw new Error(`Mismatched deck.gl versions: ${JSON.stringify(installed)}`)
+          }
+          const ranges = Object.fromEntries(
+            Object.keys(installed).map(name => [name, packageJson.peerDependencies[name]])
+          )
+          const outside = Object.entries(installed).some(
+            ([name, version]) => !semver.satisfies(version, ranges[name])
+          )
+          const range = Object.entries(ranges).map(([name, value]) => `${name} ${value}`).join('; ')
+
+          appendFileSync(process.env.GITHUB_OUTPUT, [
+            `version=${installed['@deck.gl/core']}`,
+            `range=${range}`,
+            `outside=${outside}`,
+            ''
+          ].join('\n'))
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, [
+            '## Latest deck.gl compatibility',
+            '',
+            `- Installed core: \`${installed['@deck.gl/core']}\``,
+            `- Installed layers: \`${installed['@deck.gl/layers']}\``,
+            `- Declared peer ranges: \`${range}\``,
+            `- Outside declared range: \`${outside}\``,
+            ''
+          ].join('\n'))
+          NODE
+
+  notify-compatible-release:
+    name: Report compatible deck.gl release
+    needs: latest-canary
+    if: needs.latest-canary.outputs.outside == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deck-compatible-release-notification
+      cancel-in-progress: false
+    permissions:
+      issues: write
+
+    steps:
+      - name: Open compatibility issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DECK_VERSION: ${{ needs.latest-canary.outputs.version }}
+          PEER_RANGE: ${{ needs.latest-canary.outputs.range }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          TITLE="deck.gl $DECK_VERSION compatibility passed"
+          if gh issue list --state all --limit 100 --search "$TITLE in:title" --json title --jq '.[].title' | grep -Fqx "$TITLE"; then
+            echo "Issue already exists: $TITLE"
+          else
+            BODY=$(printf 'The scheduled compatibility canary passed for deck.gl `%s`.\n\nDeclared peer range: `%s`\nWorkflow run: %s\n\nConsider widening the peer range and publishing a patch release.' "$DECK_VERSION" "$PEER_RANGE" "$RUN_URL")
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi
