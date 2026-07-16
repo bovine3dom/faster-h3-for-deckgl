@@ -1,6 +1,9 @@
 import {Deck, MapView} from '@deck.gl/core'
 import {latLngToCell} from 'h3-js'
-import {PackedH3HexagonLayer} from '../../dist/index.js'
+import {
+  PackedH3FillTransition,
+  PackedH3HexagonLayer
+} from '../../dist/index.js'
 
 window.__deckCompatibility = {status: 'running'}
 
@@ -12,11 +15,13 @@ async function run() {
   const rows = [{hexagon: latLngToCell(0, 0, 5), color: [255, 0, 0, 255]}]
   const canvas = document.getElementById('deck-canvas')
   const getHexagon = row => row.hexagon
+  const fillTransition = new PackedH3FillTransition()
   const initialLayer = new PackedH3HexagonLayer({
     id: 'packed-h3',
     data: rows,
     getHexagon,
     getFillColor: row => row.color,
+    extensions: [fillTransition],
     pickable: true
   })
 
@@ -53,6 +58,7 @@ async function run() {
       data: rows,
       getHexagon,
       getFillColor: [0, 0, 255, 255],
+      extensions: [fillTransition],
       updateTriggers: {getFillColor: [1]},
       pickable: true
     })
@@ -62,13 +68,14 @@ async function run() {
       resolveColorUpdate = resolve
       rejectColorUpdate = reject
     })
+    let observedTransitionColor = false
     deck.setProps({
       layers: [updatedLayer],
       onAfterRender: ({gl}) => {
         const pixel = new Uint8Array(4)
         gl.readPixels(160, 160, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel)
+        observedTransitionColor ||= pixel[0] > 20 && pixel[2] > 20
         if (pixel[2] > 200 && pixel[0] < 50) resolveColorUpdate(Array.from(pixel))
-        else deck.redraw('Waiting for color update')
       },
       onError: rejectColorUpdate
     })
@@ -85,6 +92,7 @@ async function run() {
       tessellatedIndexCount: sublayer.state.polygonTesselator.vertexCount,
       pickedSourceObject: picked?.object === rows[0],
       renderedColor,
+      observedTransitionColor,
       geometryReused: currentUpdatedLayer.state.geometry === geometry,
       binaryDataReused: currentUpdatedLayer.state.binaryData === binaryData,
       updatedColor: Array.from(

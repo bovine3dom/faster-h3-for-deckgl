@@ -75,6 +75,7 @@ test('renders and updates packed geometry in Chromium', {timeout: 60000}, async 
     assert.equal(result.pickedSourceObject, true)
     assert.ok(result.renderedColor[2] > 200)
     assert.ok(result.renderedColor[0] < 50)
+    assert.equal(result.observedTransitionColor, true)
     assert.equal(result.geometryReused, true)
     assert.equal(result.binaryDataReused, true)
     assert.deepEqual(result.updatedColor, [0, 0, 255, 255])

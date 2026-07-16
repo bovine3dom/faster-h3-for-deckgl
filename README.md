@@ -46,6 +46,8 @@ const layer = new PackedH3HexagonLayer({
 
 `data` must be a resolved iterable or an object with a numeric `length`. Promise, URL, and async-iterable data sources are not supported.
 
+Replacing `getFillColor` or changing its update triggers only rebuilds the colour buffer. Replacing `data` or `getHexagon` rebuilds geometry unless a `geometry` prop is supplied. As with other deck.gl layers, use an update trigger when values change. Avoid replacing the accessor itself to avoid expensive updates.
+
 ## Extra credit: compute geometry for later reuse
 
 You can pack geometry before constructing the layer and reuse it as long as the data has the same cells in the same order:
@@ -64,4 +66,24 @@ const layer = new PackedH3HexagonLayer({
 })
 ```
 
-Replacing `getFillColor` or changing its update triggers only rebuilds the color buffer. Replacing `data` or `getHexagon` rebuilds geometry unless a `geometry` prop is supplied. As with other deck.gl layers, use an update trigger when values captured by an accessor change without replacing the accessor itself.
+## Fill colour transitions
+
+Use `PackedH3FillTransition` to animate colour-only updates. `duration` defaults to 1000 milliseconds. `easing` is an optional function from linear progress to eased progress:
+
+```js
+import {PackedH3FillTransition, PackedH3HexagonLayer} from 'faster-h3-for-deckgl'
+
+const fillTransition = new PackedH3FillTransition({
+  duration: 500,
+  easing: t => t * t * (3 - 2 * t)
+})
+
+const layer = new PackedH3HexagonLayer({
+  id: 'hexagons',
+  data,
+  getHexagon: row => row.h3,
+  getFillColor: row => row.color,
+  extensions: [fillTransition],
+  updateTriggers: {getFillColor: [colorMode]}
+})
+```
