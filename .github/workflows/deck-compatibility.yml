@@ -181,6 +181,7 @@ jobs:
       - name: Open compatibility issue
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           DECK_VERSION: ${{ needs.latest-canary.outputs.version }}
           PEER_RANGE: ${{ needs.latest-canary.outputs.range }}
           RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
