@@ -43,6 +43,9 @@ jobs:
           - deck: '9.3.6'
             luma: '9.3.6'
             wgsl: '1.5.0'
+          - deck: '9.4.0'
+            luma: '9.4.0'
+            wgsl: '1.6.0'
 
     steps:
       - uses: actions/checkout@v5

@@ -38,17 +38,17 @@
     "h3-js": "^4.4.0"
   },
   "peerDependencies": {
-    "@deck.gl/core": ">=9.0.14 <9.4.0",
-    "@deck.gl/layers": ">=9.0.14 <9.4.0"
+    "@deck.gl/core": ">=9.0.14 <9.5.0",
+    "@deck.gl/layers": ">=9.0.14 <9.5.0"
   },
   "devDependencies": {
-    "@deck.gl/core": ">=9.0.14 <9.4.0",
-    "@deck.gl/layers": ">=9.0.14 <9.4.0",
-    "@luma.gl/constants": ">=9.0.14 <9.4.0",
-    "@luma.gl/core": ">=9.0.14 <9.4.0",
-    "@luma.gl/engine": ">=9.0.14 <9.4.0",
-    "@luma.gl/shadertools": ">=9.0.14 <9.4.0",
-    "@luma.gl/webgl": ">=9.0.14 <9.4.0",
+    "@deck.gl/core": ">=9.0.14 <9.5.0",
+    "@deck.gl/layers": ">=9.0.14 <9.5.0",
+    "@luma.gl/constants": ">=9.0.14 <9.5.0",
+    "@luma.gl/core": ">=9.0.14 <9.5.0",
+    "@luma.gl/engine": ">=9.0.14 <9.5.0",
+    "@luma.gl/shadertools": ">=9.0.14 <9.5.0",
+    "@luma.gl/webgl": ">=9.0.14 <9.5.0",
     "esbuild": "0.28.1",
     "playwright": "1.61.1",
     "semver": "7.8.5",

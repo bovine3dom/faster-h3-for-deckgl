@@ -12,7 +12,7 @@ It naughtily depends on some deck internals so it might be fragile and break bet
 npm install faster-h3-for-deckgl @deck.gl/core @deck.gl/layers
 ```
 
-The compatibility suite covers deck.gl 9.0 through 9.3.
+The supported deck.gl range is `>=9.0.14 <9.5.0`. The compatibility suite tests deck.gl 9.0.14, 9.3.6, and 9.4.0.
 
 ## Use
 
